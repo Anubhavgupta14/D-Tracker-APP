@@ -50,7 +50,9 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Jarvis uses your location to find places near you, and Help mode sends it to Anubhav if you don't feel safe."
+          "locationWhenInUsePermission": "Jarvis uses your location to find places near you, and Help mode sends it to Anubhav if you don't feel safe.",
+          "isAndroidForegroundServiceEnabled": true,
+          "isAndroidBackgroundLocationEnabled": false
         }
       ],
       [

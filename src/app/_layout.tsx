@@ -22,6 +22,7 @@ import { getCycleInfo } from "@/lib/cycle";
 import { buzz, burst } from "@/lib/fx";
 import { startHelp, useHelp } from "@/lib/help";
 import { hydrateChat } from "@/lib/jarvis/agent";
+import "@/lib/liveShare"; // defines the background location task
 import { hydrate, useAppState, useToday } from "@/lib/store";
 import { shortcut } from "@/lib/shortcut";
 import { loadSnapshot, setOnLocked, unlock, useSyncStatus } from "@/lib/sync";

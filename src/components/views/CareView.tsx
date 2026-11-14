@@ -4,6 +4,7 @@ import { Screen } from "@/components/Screen";
 import type { AppState, CycleInfo } from "@/lib/cycle";
 import { C } from "@/lib/theme";
 import { HelpCard } from "../HelpButton";
+import { LiveShareCard } from "../LiveShareCard";
 import { ShortcutCard } from "../ShortcutCard";
 import { ChevronLeft } from "../icons";
 import { GiftBox, HotWaterBag } from "../illustrations";
@@ -55,6 +56,9 @@ export function CareView({
 
         <Reveal delay={d()}>
           <HelpCard partnerName={state.settings.partnerName} />
+        </Reveal>
+        <Reveal delay={d()}>
+          <LiveShareCard partnerName={state.settings.partnerName} />
         </Reveal>
         <Reveal delay={d()}>
           <ShortcutCard />

@@ -6,6 +6,7 @@ import { useSyncExternalStore } from "react";
 import { Vibration } from "react-native";
 import { api, hasToken, loadToken } from "./api";
 import { stopListening, stopSpeaking } from "./jarvis/voice";
+import { liveShareState, startLiveShare, stopLiveShare } from "./liveShare";
 
 /**
  * Help mode: when Dhruvi doesn't feel safe. A loud siren, flashing torch + screen
@@ -92,6 +93,8 @@ export function startHelp(source: HelpSource, reason?: string) {
   void activateKeepAwakeAsync("help").catch(() => {});
   startSiren();
   void shareLocation(id);
+  // Also share live (Anubhav's admin page), unless she's already sharing.
+  if (liveShareState().status === "idle") void startLiveShare({ reason: "sos" }).catch(() => {});
 }
 
 /** She's safe: everything off, and Anubhav is told. */
@@ -107,6 +110,7 @@ export function stopHelp() {
   deactivateKeepAwake("help").catch(() => {});
   set(idle);
   void deliver({ event: "safe", source, reason, startedAt, fix }, () => true);
+  if (liveShareState().share?.reason === "sos") void stopLiveShare();
 }
 
 export function setSiren(on: boolean) {
