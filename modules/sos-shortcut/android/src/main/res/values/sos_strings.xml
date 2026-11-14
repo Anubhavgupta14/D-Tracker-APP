@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="sos_volume_label">Jarvis SOS (volume buttons)</string>
+  <string name="sos_volume_summary">Hold volume up and volume down together to start Help mode.</string>
+  <string name="sos_volume_description">Starts Jarvis Help mode (siren, flashing lights and your live location to your partner) when you hold volume up and volume down together for a moment. It only listens for those two buttons and never reads your screen, typing or other apps.</string>
+</resources>

@@ -62,7 +62,7 @@ class SosShortcutModule : Module() {
     }
 
     Function("enable") { presses: Int ->
-      SosPrefs.save(context, true, presses.coerceIn(3, 6))
+      SosPrefs.save(context, true, presses.coerceIn(4, 6))
       // Restart so the notification text and the location type are up to date.
       SosGuardService.start(context)
     }
@@ -70,6 +70,15 @@ class SosShortcutModule : Module() {
     Function("disable") {
       SosPrefs.save(context, false, SosPrefs.presses(context))
       SosGuardService.stop(context)
+    }
+
+    /** Volume up + down shortcut: whether Android has the service on, and whether it's on in the app. */
+    Function("volumeStatus") {
+      mapOf("accessibility" to SosVolumeService.isEnabled(context), "on" to SosPrefs.volumeOn(context))
+    }
+
+    Function("setVolumeOn") { on: Boolean ->
+      SosPrefs.setVolumeOn(context, on)
     }
 
     /** True once if the app was opened by the shortcut (picked up at startup). */
@@ -99,6 +108,8 @@ class SosShortcutModule : Module() {
           if (Build.VERSION.SDK_INT >= 34) Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, pkg)
           else Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg)
         "battery" -> Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg)
+        "accessibility" -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        "appInfo" -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg)
         "notifications" ->
           if (Build.VERSION.SDK_INT >= 26) Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, c.packageName)
           else Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg)

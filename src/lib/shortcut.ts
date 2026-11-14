@@ -14,7 +14,14 @@ export interface ShortcutStatus {
   battery: boolean;
 }
 
-export type ShortcutSetting = keyof ShortcutStatus;
+export type ShortcutSetting = keyof ShortcutStatus | "accessibility" | "appInfo";
+
+export interface VolumeStatus {
+  /** The Accessibility service is switched on in Android settings. */
+  accessibility: boolean;
+  /** Not paused in the app. */
+  on: boolean;
+}
 
 declare class SosShortcutModule extends NativeModule<{ onTrigger: () => void }> {
   isEnabled(): boolean;
@@ -26,6 +33,8 @@ declare class SosShortcutModule extends NativeModule<{ onTrigger: () => void }> 
   status(): ShortcutStatus;
   openSettings(which: ShortcutSetting): void;
   setShowOnLockScreen(on: boolean): void;
+  volumeStatus(): VolumeStatus;
+  setVolumeOn(on: boolean): void;
 }
 
 const mod = Platform.OS === "android" ? requireOptionalNativeModule<SosShortcutModule>("SosShortcut") : null;
@@ -64,6 +73,9 @@ export const shortcut = {
   },
 
   disable: () => safe(() => mod?.disable(), undefined),
+
+  volumeStatus: (): VolumeStatus | null => safe(() => mod?.volumeStatus() ?? null, null),
+  setVolumeOn: (on: boolean) => safe(() => mod?.setVolumeOn(on), undefined),
 
   /** True once if the app was just opened by the shortcut. */
   consumePending: () => safe(() => mod?.consumePending() ?? false, false),

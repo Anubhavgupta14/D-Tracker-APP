@@ -16,10 +16,6 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
-import android.provider.Settings
 import android.view.WindowManager
 
 /** Small persisted settings shared by the service, the boot receiver and the JS module. */
@@ -32,6 +28,13 @@ object SosPrefs {
 
   fun save(c: Context, enabled: Boolean, presses: Int) {
     prefs(c).edit().putBoolean("enabled", enabled).putInt("presses", presses).apply()
+  }
+
+  /** The volume-keys shortcut can be paused in the app without leaving Accessibility settings. */
+  fun volumeOn(c: Context) = prefs(c).getBoolean("volume", true)
+
+  fun setVolumeOn(c: Context, on: Boolean) {
+    prefs(c).edit().putBoolean("volume", on).apply()
   }
 
   fun markPending(c: Context) {
@@ -160,27 +163,15 @@ class SosGuardService : Service() {
     }
   }
 
-  private fun builder(channel: String): Notification.Builder =
-    if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, channel) else legacyBuilder()
-
-  @Suppress("DEPRECATION")
-  private fun legacyBuilder(): Notification.Builder = Notification.Builder(this).setPriority(Notification.PRIORITY_MAX)
-
-  private fun openAppIntent(trigger: Boolean): Intent? =
-    packageManager.getLaunchIntentForPackage(packageName)?.apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-      if (trigger) putExtra(EXTRA_TRIGGER, true)
-    }
-
   private fun guardNotification(): Notification {
     val n = SosPrefs.presses(this)
-    val b = builder(GUARD_CHANNEL)
+    val b = SosTrigger.builder(this, GUARD_CHANNEL)
       .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
       .setContentTitle("SOS shortcut is on")
       .setContentText("Press the power button $n times quickly to start Help mode.")
       .setOngoing(true)
       .setShowWhen(false)
-    openAppIntent(false)?.let {
+    SosTrigger.openAppIntent(this, false)?.let {
       b.setContentIntent(PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
     }
     return b.build()
@@ -202,68 +193,15 @@ class SosGuardService : Service() {
 
   private fun onPress() {
     val now = SystemClock.elapsedRealtime()
-    val need = SosPrefs.presses(this).coerceIn(3, 6)
+    val need = SosPrefs.presses(this).coerceIn(4, 6)
     presses.addLast(now)
     while (presses.size > need) presses.removeFirst()
     // N presses within about 0.8 s each, and not again right after a trigger.
     if (presses.size == need && now - presses.first() <= need * 800L && now - lastTrigger > 20_000L) {
       lastTrigger = now
       presses.clear()
-      trigger()
+      SosTrigger.fire(this, canStartActivity = false)
     }
-  }
-
-  private fun trigger() {
-    SosPrefs.markPending(this)
-    vibrate()
-    // If the app is alive, Help mode starts right now (siren + alert), even before it's on screen.
-    SosShortcutModule.dispatchTrigger()
-
-    val launch = openAppIntent(true) ?: return
-    // Android blocks opening apps from the background unless "Display over other apps" is allowed.
-    if (Build.VERSION.SDK_INT < 29 || Settings.canDrawOverlays(this)) {
-      try {
-        startActivity(launch)
-      } catch (e: Exception) {
-      }
-    }
-    // A full-screen alert opens it over the lock screen; otherwise it's a tap-to-open banner.
-    val pi = PendingIntent.getActivity(this, 1, launch, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    val alert = builder(ALERT_CHANNEL)
-      .setSmallIcon(android.R.drawable.ic_dialog_alert)
-      .setContentTitle("SOS started")
-      .setContentText("Opening Help mode. Tap here if it doesn't open.")
-      .setCategory(Notification.CATEGORY_ALARM)
-      .setContentIntent(pi)
-      .setFullScreenIntent(pi, true)
-      .setAutoCancel(true)
-      .build()
-    try {
-      getSystemService(NotificationManager::class.java)?.notify(ALERT_ID, alert)
-    } catch (e: Exception) {
-    }
-  }
-
-  private fun vibrate() {
-    val pattern = longArrayOf(0, 500, 150, 500, 150, 500)
-    try {
-      if (Build.VERSION.SDK_INT >= 31) {
-        getSystemService(VibratorManager::class.java)?.defaultVibrator?.vibrate(VibrationEffect.createWaveform(pattern, -1))
-      } else if (Build.VERSION.SDK_INT >= 26) {
-        legacyVibrator()?.vibrate(VibrationEffect.createWaveform(pattern, -1))
-      } else {
-        legacyVibrate(pattern)
-      }
-    } catch (e: Exception) {
-    }
-  }
-
-  @Suppress("DEPRECATION")
-  private fun legacyVibrator(): Vibrator? = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-
-  @Suppress("DEPRECATION")
-  private fun legacyVibrate(pattern: LongArray) {
-    legacyVibrator()?.vibrate(pattern, -1)
   }
 }
 
