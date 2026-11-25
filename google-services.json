@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "405404067374",
+    "project_id": "d-tracker-59324",
+    "storage_bucket": "d-tracker-59324.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:405404067374:android:dd63ac5c781808b4a461bf",
+        "android_client_info": {
+          "package_name": "com.dtracker.jarvis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDv4a9SR0gU1FnWE2uWEEFZ4nz_ckv-p0c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
