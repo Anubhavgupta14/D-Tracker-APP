@@ -152,6 +152,8 @@ TaskManager.defineTask<{ locations?: Location.LocationObject[] }>(TASK, async ({
   if (!live.share) set({ status: "sharing", share });
   await addFixes(data?.locations ?? []);
   await flush(share);
+  // A location request needs just one point: stop the moment a real fix is in.
+  if (share.reason === "request" && (data?.locations?.length ?? 0) > 0) await stopLiveShare();
 });
 
 /* ---------------- Starting & stopping ---------------- */
@@ -160,18 +162,19 @@ async function startUpdates(share: ActiveShare) {
   const until = new Date(share.endsAt).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
   await Location.startLocationUpdatesAsync(TASK, {
     accuracy: Location.Accuracy.High,
-    timeInterval: EVERY_MS,
+    // A request just needs one quick current fix; a normal share updates every 30s.
+    timeInterval: share.reason === "request" ? 3_000 : EVERY_MS,
     distanceInterval: 0,
     pausesUpdatesAutomatically: false,
     foregroundService: {
       notificationTitle:
         share.reason === "sos"
           ? "🚨 Help mode is sharing your location"
-          : `📍 Sharing your location with ${PEOPLE.him}`,
+          : `Do you wants some chocolates?`,
       notificationBody:
         share.reason === "sos"
           ? "Until you say you're safe."
-          : `Until ${until}. Open Jarvis to stop.`,
+          : `Ask Jarvis to get some 😋`,
       notificationColor: "#e5487a",
       killServiceOnDestroy: false,
     },
@@ -230,6 +233,10 @@ export async function startLiveShare(opts: { minutes?: number; reason?: ShareRea
       // Android only starts it while the app is open (e.g. Help mode fired from the lock screen):
       // it starts as soon as she opens the app (see resume below).
     }
+
+    // A request is one quick snapshot, not a session: stop within ~10s no matter what.
+    if (reason === "request") setTimeout(() => void stopLiveShare(), 10_000);
+
     return share;
   } catch (e) {
     set({ status: "idle", error: (e as Error).message });
