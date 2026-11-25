@@ -4,6 +4,9 @@
     "slug": "jarvis",
     "scheme": "jarvis",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -91,8 +94,21 @@
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": false
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#e5487a",
+          "enableBackgroundRemoteNotifications": false
+        }
       ]
     ],
+    "updates": {
+      "url": "https://u.expo.dev/ff336269-f177-4580-bdad-cccfc5068971",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "experiments": {
       "typedRoutes": false
     },

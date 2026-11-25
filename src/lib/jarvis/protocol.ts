@@ -59,6 +59,7 @@ export type ToolName =
   | "send_to_engineer"
   | "web_search"
   | "show_date_plan"
+  | "recommend_songs"
   | "open_comfort_tool"
   | "log_cycle"
   | "start_help_mode";
@@ -75,6 +76,7 @@ export const TOOL_KIND: Record<ToolName, "server" | "action" | "ask"> = {
   send_to_engineer: "server",
   web_search: "server",
   show_date_plan: "action",
+  recommend_songs: "action",
   open_comfort_tool: "action",
   log_cycle: "action",
   start_help_mode: "action",
@@ -97,6 +99,18 @@ export interface DatePlan {
   budget_max_inr: number;
   stops: DatePlanStop[];
   tips?: string[];
+}
+
+/** A motivational song Jarvis suggests when she's low; the app builds the play links. */
+export interface SongPick {
+  title: string;
+  artist: string;
+  why?: string;
+}
+
+export interface SongSet {
+  intro?: string;
+  songs: SongPick[];
 }
 
 const STR = { type: "STRING" } as const;

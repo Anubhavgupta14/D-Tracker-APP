@@ -23,6 +23,9 @@ import { buzz, burst } from "@/lib/fx";
 import { startHelp, useHelp } from "@/lib/help";
 import { hydrateChat } from "@/lib/jarvis/agent";
 import "@/lib/liveShare"; // defines the background location task
+import { registerPush } from "@/lib/push";
+import { startLocationRequestWatch } from "@/lib/remoteLocate"; // defines the data-push task
+import { applyUpdateOnLaunch } from "@/lib/updates";
 import { hydrate, useAppState, useToday } from "@/lib/store";
 import { shortcut } from "@/lib/shortcut";
 import { loadSnapshot, setOnLocked, unlock, useSyncStatus } from "@/lib/sync";
@@ -89,6 +92,15 @@ export default function RootLayout() {
     hydrate(r.data);
     hydrateChat(r.data.messages);
     setPhase({ kind: "ready" });
+    // Signed in: register for push (health check + location requests) and pick up
+    // any location request that was waiting while the app was closed.
+    void registerPush();
+    startLocationRequestWatch();
+  }, []);
+
+  // Pull any over-the-air update before showing the app.
+  useEffect(() => {
+    void applyUpdateOnLaunch();
   }, []);
 
   useEffect(() => {

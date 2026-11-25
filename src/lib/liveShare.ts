@@ -16,7 +16,7 @@ import { PEOPLE } from "./config";
 const TASK = "jarvis-live-location";
 const EVERY_MS = 30_000;
 
-export type ShareReason = "share" | "sos";
+export type ShareReason = "share" | "sos" | "request";
 
 export interface ActiveShare {
   id: string;
@@ -164,8 +164,14 @@ async function startUpdates(share: ActiveShare) {
     distanceInterval: 0,
     pausesUpdatesAutomatically: false,
     foregroundService: {
-      notificationTitle: share.reason === "sos" ? "🚨 Help mode is sharing your location" : `📍 Sharing your location with ${PEOPLE.him}`,
-      notificationBody: share.reason === "sos" ? "Until you say you're safe." : `Until ${until}. Open Jarvis to stop.`,
+      notificationTitle:
+        share.reason === "sos"
+          ? "🚨 Help mode is sharing your location"
+          : `📍 Sharing your location with ${PEOPLE.him}`,
+      notificationBody:
+        share.reason === "sos"
+          ? "Until you say you're safe."
+          : `Until ${until}. Open Jarvis to stop.`,
       notificationColor: "#e5487a",
       killServiceOnDestroy: false,
     },
@@ -183,6 +189,8 @@ async function updatesRunning() {
 /** Starts sharing for `minutes` (Help mode: until she's safe, max 12 h). Throws a readable error. */
 export async function startLiveShare(opts: { minutes?: number; reason?: ShareReason } = {}) {
   const reason = opts.reason ?? "share";
+  // A share already running already covers a location request — don't disturb it.
+  if (live.status !== "idle" && reason === "request") return current();
   if (live.status !== "idle" && reason === "share") await stopLiveShare();
   set({ status: "starting", share: live.share });
 

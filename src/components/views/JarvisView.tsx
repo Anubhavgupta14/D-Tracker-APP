@@ -30,6 +30,7 @@ import {
 } from "@/lib/jarvis/voice";
 import { FONT } from "@/lib/theme";
 import { DatePlanCard } from "../jarvis/DatePlanCard";
+import { SongsCard } from "../jarvis/SongsCard";
 import { Orb, type OrbState } from "../jarvis/Orb";
 import { Screen } from "../Screen";
 import { Press, Reveal, T, type ToolId } from "../ui";
@@ -451,6 +452,8 @@ function Message({
       );
     case "plan":
       return <DatePlanCard plan={m.plan} onSend={() => onSend(`Send this date plan (${m.plan.title}) to ${PEOPLE.him} as a date request.`)} />;
+    case "songs":
+      return <SongsCard set={m.set} />;
     case "call":
       return (
         <View style={styles.callCard}>

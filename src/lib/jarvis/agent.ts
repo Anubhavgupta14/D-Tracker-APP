@@ -9,7 +9,7 @@ import { armHelp, helpState } from "../help";
 import { actions } from "../store";
 import { enqueue } from "../sync";
 import type { DataSnapshot } from "../sync-protocol";
-import type { DatePlan, JarvisContext, JarvisEvent, JarvisRequest, ToolCall } from "./protocol";
+import type { DatePlan, JarvisContext, JarvisEvent, JarvisRequest, SongSet, ToolCall } from "./protocol";
 
 /* ============================================================
    Chat state (module-level, so a reply keeps streaming even if
@@ -21,6 +21,7 @@ export type Msg =
   | { id: string; kind: "jarvis"; text: string }
   | { id: string; kind: "tool"; label: string; status: "run" | "ok" | "err"; summary?: string }
   | { id: string; kind: "plan"; plan: DatePlan }
+  | { id: string; kind: "songs"; set: SongSet }
   | { id: string; kind: "call"; reason?: string }
   | { id: string; kind: "error"; text: string };
 
@@ -244,6 +245,11 @@ function runAction(call: ToolCall, fx: Effects) {
     case "show_date_plan":
       push({ id: uid(), kind: "plan", plan: a as unknown as DatePlan });
       break;
+    case "recommend_songs": {
+      const songs = Array.isArray(a.songs) ? (a.songs as SongSet["songs"]).filter((s) => s && s.title) : [];
+      if (songs.length) push({ id: uid(), kind: "songs", set: { intro: a.intro as string | undefined, songs } });
+      break;
+    }
     case "open_comfort_tool":
       fx.openTool(a.tool as "chocolate" | "hotbag" | "stretch" | "game");
       break;
